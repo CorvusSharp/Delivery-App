@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    env_file: .env
+    depends_on: [db, redis, rabbitmq]
+    ports: ["8000:8000"]
+    command: >
+      sh -c "echo 'API placeholder — добавим запуск FastAPI позже' && sleep infinity"
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    env_file: .env
+    depends_on: [db, redis, rabbitmq]
+    command: >
+      sh -c "echo 'Worker placeholder — добавим Celery позже' && sleep infinity"
+
+  flower:
+    image: mher/flower:latest
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+    ports: ["5555:5555"]
+    depends_on: [rabbitmq]
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: delivery
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports: ["5432:5432"]
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports: ["5672:5672", "15672:15672"]
+
+volumes:
+  pgdata:

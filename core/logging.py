@@ -13,7 +13,7 @@ def setup_logging():
         backtrace=False,
         diagnose=False,
         enqueue=True,
-        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | req={extra[request_id]} ses={extra[session_id]} | {message}",
+        format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<7} | {name} | {message}",
     )
     return logger
 

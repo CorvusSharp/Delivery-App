@@ -21,7 +21,20 @@ services:
     env_file: .env
     depends_on: [ redis, rabbitmq ]
     command: >
-      sh -c "celery -A core.celery.celery worker -l info -Q default -n worker@%h"
+      sh -c "celery -A core.celery.celery worker -l info -Q celery -n worker@%h"
+    environment:
+      - PYTHONPATH=/app
+      - DYNACONF_ENV=development
+      - PYTHONUNBUFFERED=1
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    env_file: .env
+    depends_on: [ redis, rabbitmq ]
+    command: >
+      sh -c "celery -A core.celery.celery beat -l info"
     environment:
       - PYTHONPATH=/app
       - DYNACONF_ENV=development

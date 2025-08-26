@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Delivery Debug Web</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2em;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1em;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Delivery Debug Web</h1>
+
+    <form method="post" action="/web/register">
+        <fieldset>
+            <legend>Зарегистрировать посылку</legend>
+            <label>Название: <input name="name" required></label><br>
+            <label>Вес (кг): <input name="weight" type="number" step="0.01" min="0.01" required></label><br>
+            <label>Тип:
+                <select name="type_id">
+                    {% for t in types %}
+                    <option value="{{ t.id }}">{{ translate_parcel_type(t.name) }}</option>
+                    {% endfor %}
+                </select>
+            </label><br>
+            <label>Стоимость содержимого (USD): <input name="value_usd" type="number" step="0.01" min="0"
+                    required></label><br>
+            <button type="submit">Зарегистрировать</button>
+        </fieldset>
+    </form>
+    {% if message %}<div class="success">{{ message }}</div>{% endif %}
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <h2>Ваши посылки</h2>
+    <form method="get" action="/web/">
+        <label>Тип:
+            <select name="type_id">
+                <option value="">Все</option>
+                {% for t in types %}
+                <option value="{{ t.id }}" {% if t.id|string==type_id %}selected{% endif %}>{{
+                    translate_parcel_type(t.name) }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Только с рассчитанной стоимостью <input type="checkbox" name="has_price" value="1" {% if has_price
+                %}checked{% endif %}></label>
+        <button type="submit">Фильтровать</button>
+    </form>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Вес</th>
+            <th>Тип</th>
+            <th>USD</th>
+            <th>Стоимость доставки</th>
+        </tr>
+        {% for p in parcels %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.weight }}</td>
+            <td>
+                {% if p.type %}
+                {{ translate_parcel_type(p.type.name) }} <small style="color: #666;">({{ p.type.name }})</small>
+                {% else %}
+                -
+                {% endif %}
+            </td>
+            <td>{{ p.value_usd }}</td>
+            <td>{% if p.delivery_price_rub is not none %}{{ p.delivery_price_rub|round(2) }}{% else %}<span
+                    style="color:gray">Не рассчитано</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form method="post" action="/web/trigger-calc">
+        <button type="submit">Запустить расчёт стоимости доставки</button>
+    </form>
+    <h3>Текущий курс USD/RUB: {{ usd_rub_rate or '...' }}</h3>
+</body>
+
+</html>

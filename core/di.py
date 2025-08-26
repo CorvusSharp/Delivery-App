@@ -10,6 +10,9 @@ class Container:
         if provider is None:
             raise KeyError(f"Provider '{name}' not registered")
         return provider()
+    
+    def has(self, name):
+        return name in self._providers
 
 container = Container()
 command_bus = None 

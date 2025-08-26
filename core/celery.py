@@ -5,7 +5,7 @@ celery = Celery(
     "delivery",
     broker=settings.rabbitmq.url,
     backend=settings.celery.result_backend,
-    include=['services.tasks_delivery']  # Автоимпорт задач
+    include=['services.tasks_delivery', 'services.tasks']  # Автоимпорт задач
 )
 
 celery.conf.update(

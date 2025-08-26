@@ -1,11 +1,15 @@
-import sys, time, asyncio, functools
+import sys
+import asyncio
+import functools
 from loguru import logger
 from contextvars import ContextVar
 
 _request_id: ContextVar[str] = ContextVar("request_id", default="-")
 _session_id: ContextVar[str] = ContextVar("session_id", default="-")
 
+
 def setup_logging():
+    """Configure and return logger for the process."""
     logger.remove()
     logger.add(
         sys.stdout,
@@ -17,38 +21,53 @@ def setup_logging():
     )
     return logger
 
+
 def bind_context(request_id: str = "-", session_id: str = "-"):
-    _request_id.set(request_id); _session_id.set(session_id)
+    """Bind request/session id to contextvars and return bound logger."""
+    _request_id.set(request_id)
+    _session_id.set(session_id)
     return logger.bind(request_id=request_id, session_id=session_id)
 
+
 def log_call(fn):
-    """Декоратор логирования и тайминга. Работает для async и sync."""
+    """Декоратор логирования и тайминга. Работает для async и sync функций.
+
+    Декоратор берёт request/session id из contextvars и логирует вызов и время работы.
+    """
     is_async = asyncio.iscoroutinefunction(fn)
 
-    @functools.wraps(fn)
-    async def _aw(*args, **kwargs):
-        log = bind_context(_request_id.get(), _session_id.get())
-        start = time.perf_counter()
-        log.info(f"▶ {fn.__qualname__}()")
-        try:
-            res = await fn(*args, **kwargs)
-            log.info(f"✔ {fn.__qualname__}() in {(time.perf_counter()-start)*1000:.1f} ms")
-            return res
-        except Exception:
-            log.exception(f"✖ {fn.__qualname__}() failed")
-            raise
+    if is_async:
+        @functools.wraps(fn)
+        async def _aw(*args, **kwargs):
+            log = bind_context(_request_id.get(), _session_id.get())
+            log.info(f"CALL {fn.__name__} start")
+            try:
+                import time
+                t0 = time.monotonic()
+                result = await fn(*args, **kwargs)
+                t1 = time.monotonic()
+                log.info(f"CALL {fn.__name__} done in {(t1-t0):.3f}s")
+                return result
+            except Exception:
+                log.exception(f"Exception in {fn.__name__}")
+                raise
 
-    @functools.wraps(fn)
-    def _sw(*args, **kwargs):
-        log = bind_context(_request_id.get(), _session_id.get())
-        start = time.perf_counter()
-        log.info(f"▶ {fn.__qualname__}()")
-        try:
-            res = fn(*args, **kwargs)
-            log.info(f"✔ {fn.__qualname__}() in {(time.perf_counter()-start)*1000:.1f} ms")
-            return res
-        except Exception:
-            log.exception(f"✖ {fn.__qualname__}() failed")
-            raise
+        return _aw
 
-    return _aw if is_async else _sw
+    else:
+        @functools.wraps(fn)
+        def _sw(*args, **kwargs):
+            log = bind_context(_request_id.get(), _session_id.get())
+            log.info(f"CALL {fn.__name__} start")
+            try:
+                import time
+                t0 = time.monotonic()
+                result = fn(*args, **kwargs)
+                t1 = time.monotonic()
+                log.info(f"CALL {fn.__name__} done in {(t1-t0):.3f}s")
+                return result
+            except Exception:
+                log.exception(f"Exception in {fn.__name__}")
+                raise
+
+        return _sw

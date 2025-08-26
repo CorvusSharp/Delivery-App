@@ -1,10 +1,9 @@
 from core.celery import celery
 from core.db import SyncSessionLocal
-from core.usd import get_usd_rub_rate
+from core.usd import get_usd_rub_rate_sync
 from domain.models import Parcel
 from sqlalchemy import select, update
 from loguru import logger
-import asyncio
 
 @celery.task
 def update_delivery_prices():
@@ -18,8 +17,8 @@ def update_delivery_prices():
             logger.info("Нет посылок для расчёта стоимости доставки.")
             return
         
-        # Получаем курс валют синхронно через asyncio.run
-        rate = asyncio.run(get_usd_rub_rate())
+        # Получаем курс валют синхронно
+        rate = get_usd_rub_rate_sync()
         
         for parcel in parcels:
             price = (parcel.weight * 0.5 + parcel.value_usd * 0.01) * rate

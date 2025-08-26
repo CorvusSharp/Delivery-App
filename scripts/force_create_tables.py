@@ -1,6 +1,6 @@
 from sqlalchemy import insert, text
 from core.db import sync_engine, Base
-import domain.models  # ensure models are registered
+import adapters.db.models  # ensure models are registered
 
 def main():
     print('Using sync_engine:', sync_engine.url)
@@ -16,7 +16,7 @@ def main():
             cnt = 0
         if not cnt:
             print('Inserting test row into parcel_types')
-            conn.execute(insert(domain.models.ParcelType).values(name='test'))
+            conn.execute(insert(adapters.db.models.ParcelType).values(name='test'))
         else:
             print('Test row already exists')
 

@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from domain.models import Parcel, ParcelType
+from adapters.db.models import Parcel, ParcelType
 
 
 class ParcelRepository:

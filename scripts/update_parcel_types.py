@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy import select, update
 from core.db import engine, Base, AsyncSessionLocal
 from sqlalchemy.ext.asyncio import AsyncSession
-from domain.models import ParcelType
+from adapters.db.models import ParcelType
 from loguru import logger
 
 async def update_parcel_types():
@@ -23,18 +23,18 @@ async def update_parcel_types():
         for ptype in existing_types:
             logger.info("  ID: %s, Название: %s", ptype.id, ptype.name)
         
-        # Обновляем существующий тип и добавляем новые
+        # Обновляем существующий тип и добавляем новые (английские названия)
         if existing_types:
-            # Обновляем первый тип на "одежда"
+            # Обновляем первый тип на "Clothing"
             await session.execute(
-                update(ParcelType).where(ParcelType.id == existing_types[0].id).values(name="одежда")
+                update(ParcelType).where(ParcelType.id == existing_types[0].id).values(name="Clothing")
             )
-            logger.info("Обновлен тип ID %s на 'одежда'", existing_types[0].id)
+            logger.info("Обновлен тип ID %s на 'Clothing'", existing_types[0].id)
         
         # Добавляем недостающие типы
         new_types = [
-            {"id": 2, "name": "электроника"},
-            {"id": 3, "name": "разное"},
+            {"id": 2, "name": "Electronics"},
+            {"id": 3, "name": "Other"},
         ]
         
         for type_data in new_types:

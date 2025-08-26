@@ -12,7 +12,7 @@ def init_parcel_types():
     """Инициализация типов посылок, если они не существуют."""
     session = SyncSessionLocal()
     try:
-        from domain.models import ParcelType
+        from adapters.db.models import ParcelType
         
         # Проверяем, есть ли уже типы в базе
         result = session.execute(select(ParcelType))
@@ -22,11 +22,11 @@ def init_parcel_types():
             logger.info("Типы посылок уже существуют в базе данных")
             return
         
-        # Создаем типы посылок
+        # Создаем типы посылок (английские названия как канон)
         parcel_types = [
-            ParcelType(id=1, name="одежда"),
-            ParcelType(id=2, name="электроника"),
-            ParcelType(id=3, name="разное"),
+            ParcelType(id=1, name="Clothing"),
+            ParcelType(id=2, name="Electronics"),
+            ParcelType(id=3, name="Other"),
         ]
         
         session.add_all(parcel_types)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     
     # Импорт моделей здесь гарантирует, что они зарегистрированы в Base.metadata
     # до вызова create_all()
-    import domain.models  # noqa: F401
+    import adapters.db.models  # noqa: F401
     
     logger.info("Создание таблиц в базе данных...")
     asyncio.run(init_db())

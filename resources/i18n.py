@@ -1,4 +1,5 @@
-# core/localization.py
+# resources/i18n.py
+# Интернационализация для презентационного слоя
 
 # Маппинг типов посылок с английского на русский
 PARCEL_TYPE_TRANSLATIONS = {

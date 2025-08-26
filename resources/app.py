@@ -11,7 +11,7 @@ from resources.routers import admin as admin_router
 from resources.routers import health as health_router
 from resources.routers import parcels as parcels_router
 from resources.routers import tasks as tasks_router
-from services.adapters.messaging_celery import CeleryTaskQueueAdapter
+from adapters.messaging.celery import CeleryTaskQueueAdapter
 
 
 # Инициализируем логирование на уровне модуля,

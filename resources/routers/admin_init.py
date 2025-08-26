@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from core.db import init_db, get_db
-from domain.models import ParcelType
+from adapters.db.models import ParcelType
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

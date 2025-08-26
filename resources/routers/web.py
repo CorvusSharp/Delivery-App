@@ -4,9 +4,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.db import get_db
 from repositories.parcel import ParcelRepository
-from domain.services import ParcelService
+from application.parcel_service import ParcelService
 from core.usd import get_usd_rub_rate
-from core.localization import translate_parcel_type
+from resources.i18n import translate_parcel_type
 from schemas.parcel import ParcelRegisterRequest
 from core.settings import auth as auth_settings
 import uuid
@@ -56,9 +56,9 @@ async def web_index(request: Request, db: AsyncSession = Depends(get_db)):
         usd_rub_rate = await get_usd_rub_rate()
     except Exception:
         pass
-    # Сериализуем Pydantic-модели в простые структуры для передачи в шаблон
-    types_data = [t.model_dump() if hasattr(t, 'model_dump') else t for t in types]
-    parcels_data = [p.model_dump() if hasattr(p, 'model_dump') else p for p in parcels]
+    # Сервис теперь возвращает словари, не нужно сериализовать
+    types_data = types
+    parcels_data = parcels
 
     response = templates.TemplateResponse("debug.html", {
         "request": request,
@@ -89,14 +89,14 @@ async def web_register(
     repo = ParcelRepository(db)
     service = ParcelService(repo)
     try:
-        # Создаем правильный объект ParcelRegisterRequest
-        parcel_data = ParcelRegisterRequest(
+        # Вызываем сервис с отдельными параметрами
+        await service.register_parcel(
             name=name,
             weight=weight,
             type_id=type_id,
-            value_usd=value_usd
+            value_usd=value_usd,
+            session_id=session_id
         )
-        await service.register_parcel(parcel_data, session_id)
         resp = RedirectResponse("/web/?message=Посылка+зарегистрирована", status_code=303)
         # Если клиент не прислал cookie, установим её в ответе (чтобы headless клиенты получили session_id)
         if not request.cookies.get(session_cookie):
@@ -126,8 +126,8 @@ async def debug_json(request: Request, db: AsyncSession = Depends(get_db)):
         "session_id": session_id,
         "parcels_count": len(parcels),
         "first_parcel": {
-            "id": parcels[0].id if parcels else None,
-            "type": parcels[0].type if parcels else None,
-            "type_type": str(type(parcels[0].type)) if parcels else None,
+            "id": parcels[0]["id"] if parcels else None,
+            "type": parcels[0]["type"] if parcels else None,
+            "type_type": str(type(parcels[0]["type"])) if parcels else None,
         } if parcels else None
     }

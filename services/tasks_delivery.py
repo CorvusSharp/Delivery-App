@@ -1,7 +1,7 @@
 from core.celery import celery
 from core.db import SyncSessionLocal
 from core.usd import get_usd_rub_rate_sync
-from domain.models import Parcel
+from adapters.db.models import Parcel
 from sqlalchemy import select, update
 from loguru import logger
 

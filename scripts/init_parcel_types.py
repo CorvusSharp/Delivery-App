@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy import delete
 from core.db import engine, Base, AsyncSessionLocal
 from sqlalchemy.ext.asyncio import AsyncSession
-from domain.models import ParcelType
+from adapters.db.models import ParcelType
 from loguru import logger
 
 async def init_parcel_types():
@@ -20,11 +20,11 @@ async def init_parcel_types():
         await session.commit()
         logger.info("Старые типы посылок удалены")
         
-        # Создаем новые типы
+        # Создаем новые типы (английские названия как канон)
         parcel_types = [
-            ParcelType(id=1, name="одежда"),
-            ParcelType(id=2, name="электроника"),
-            ParcelType(id=3, name="разное"),
+            ParcelType(id=1, name="Clothing"),
+            ParcelType(id=2, name="Electronics"),
+            ParcelType(id=3, name="Other"),
         ]
         
         session.add_all(parcel_types)

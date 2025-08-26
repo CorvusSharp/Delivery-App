@@ -1,8 +1,6 @@
-from fastapi import status
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
-from fastapi.exception_handlers import RequestValidationError
-from fastapi.exceptions import HTTPException
+from fastapi.exceptions import RequestValidationError, HTTPException
 from loguru import logger
 
 
@@ -20,7 +18,7 @@ def error_response(message, status_code=400, data=None):
 
 
 def add_exception_handlers(app):
-    """Добавляет глобальные обработчики ошибок для стандартизации ответов."""
+    
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
         logger.error(f"HTTPException: {exc.detail}")
@@ -28,6 +26,7 @@ def add_exception_handlers(app):
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        # exc.errors() возвращает структуру с деталями валидации
         logger.error(f"Validation error: {exc.errors()}")
         return error_response("Validation error", status_code=422, data=exc.errors())
 

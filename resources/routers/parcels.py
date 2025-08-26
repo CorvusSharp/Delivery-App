@@ -5,6 +5,7 @@ from schemas.parcel import ParcelRegisterRequest, ParcelResponse, ParcelTypeResp
 from repositories.parcel import ParcelRepository
 from domain.services import ParcelService
 import uuid
+from core.settings import auth as auth_settings
 
 router = APIRouter(prefix="/parcels", tags=["Parcels"])
 
@@ -15,10 +16,11 @@ async def register_parcel(
     response: Response,
     db: AsyncSession = Depends(get_db)
 ):
-    session_id = request.cookies.get("session_id")
+    session_cookie = auth_settings.session_cookie_name
+    session_id = request.cookies.get(session_cookie)
     if not session_id:
         session_id = str(uuid.uuid4())
-        response.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+        response.set_cookie(session_cookie, session_id, httponly=True, samesite="lax")
     repo = ParcelRepository(db)
     service = ParcelService(repo)
     try:
@@ -41,7 +43,8 @@ async def list_parcels(
     limit: int = Query(10, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
-    session_id = request.cookies.get("session_id")
+    session_cookie = auth_settings.session_cookie_name
+    session_id = request.cookies.get(session_cookie)
     if not session_id:
         raise HTTPException(401, "No session")
     repo = ParcelRepository(db)
@@ -50,7 +53,8 @@ async def list_parcels(
 
 @router.get("/{parcel_id}", response_model=ParcelResponse)
 async def get_parcel(parcel_id: int, request: Request, db: AsyncSession = Depends(get_db)):
-    session_id = request.cookies.get("session_id")
+    session_cookie = auth_settings.session_cookie_name
+    session_id = request.cookies.get(session_cookie)
     if not session_id:
         raise HTTPException(401, "No session")
     repo = ParcelRepository(db)

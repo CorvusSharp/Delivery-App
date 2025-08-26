@@ -8,6 +8,7 @@ from domain.services import ParcelService
 from core.usd import get_usd_rub_rate
 from core.localization import translate_parcel_type
 from schemas.parcel import ParcelRegisterRequest
+from core.settings import auth as auth_settings
 import uuid
 import logging
 
@@ -21,10 +22,11 @@ async def web_index(request: Request, db: AsyncSession = Depends(get_db)):
     # debug logging removed
     
     # Если это запрос отладки, принудительно устанавливаем сессию с данными
+    session_cookie = auth_settings.session_cookie_name
     if request.query_params.get("debug") == "set_session":
         session_id = "581283af-2523-4a2d-9dd2-1ec8eabf5ac0"
     else:
-        session_id = request.cookies.get("session_id") or str(uuid.uuid4())
+        session_id = request.cookies.get(session_cookie) or str(uuid.uuid4())
     
     # debug logging removed
     
@@ -69,8 +71,8 @@ async def web_index(request: Request, db: AsyncSession = Depends(get_db)):
         "translate_parcel_type": translate_parcel_type,
         "error": request.query_params.get("error"),
     })
-    if not request.cookies.get("session_id"):
-        response.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+    if not request.cookies.get(session_cookie):
+        response.set_cookie(session_cookie, session_id, httponly=True, samesite="lax")
     return response
 
 @router.post("/register")
@@ -82,7 +84,8 @@ async def web_register(
     value_usd: float = Form(...),
     db: AsyncSession = Depends(get_db)
 ):
-    session_id = request.cookies.get("session_id") or str(uuid.uuid4())
+    session_cookie = auth_settings.session_cookie_name
+    session_id = request.cookies.get(session_cookie) or str(uuid.uuid4())
     repo = ParcelRepository(db)
     service = ParcelService(repo)
     try:
@@ -96,13 +99,13 @@ async def web_register(
         await service.register_parcel(parcel_data, session_id)
         resp = RedirectResponse("/web/?message=Посылка+зарегистрирована", status_code=303)
         # Если клиент не прислал cookie, установим её в ответе (чтобы headless клиенты получили session_id)
-        if not request.cookies.get("session_id"):
-            resp.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+        if not request.cookies.get(session_cookie):
+            resp.set_cookie(session_cookie, session_id, httponly=True, samesite="lax")
         return resp
     except Exception as e:
         resp = RedirectResponse(f"/web/?error={str(e)}", status_code=303)
-        if not request.cookies.get("session_id"):
-            resp.set_cookie("session_id", session_id, httponly=True, samesite="lax")
+        if not request.cookies.get(session_cookie):
+            resp.set_cookie(session_cookie, session_id, httponly=True, samesite="lax")
         return resp
 
 @router.post("/trigger-calc")

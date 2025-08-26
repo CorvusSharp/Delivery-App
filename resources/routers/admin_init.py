@@ -19,18 +19,16 @@ async def admin_init_data(db: AsyncSession = Depends(get_db)):
     count = existing_types.scalar()
     
     if count == 0:
-        # Добавляем типы посылок
+        # Добавляем три канонических типа посылок (english canonical names)
         types = [
-            ParcelType(id=1, name="Документы"),
-            ParcelType(id=2, name="Электроника"),
-            ParcelType(id=3, name="Одежда"),
-            ParcelType(id=4, name="Книги"),
-            ParcelType(id=5, name="Прочее")
+            ParcelType(id=1, name="Clothing"),
+            ParcelType(id=2, name="Electronics"),
+            ParcelType(id=3, name="Other"),
         ]
-        
+
         for parcel_type in types:
             db.add(parcel_type)
-        
+
         await db.commit()
         return {"detail": f"Добавлено {len(types)} типов посылок"}
     else:

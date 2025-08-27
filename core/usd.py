@@ -1,6 +1,6 @@
 import httpx
 import redis as sync_redis
-from core.cache import redis
+from adapters.cache.redis import redis
 from core.settings import redis as redis_settings
 
 CBR_URL = "https://www.cbr-xml-daily.ru/daily_json.js"

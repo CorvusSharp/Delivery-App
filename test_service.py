@@ -1,11 +1,11 @@
 import asyncio
-from core.db import AsyncSessionLocal
-from repositories.parcel import ParcelRepository
-from application.parcel_service import ParcelService
+from adapters.db.session import get_db
+from adapters.db.repositories.parcel import SQLAlchemyParcelRepository
+from services.parcel_service import ParcelService
 
 async def test():
-    async with AsyncSessionLocal() as db:
-        repo = ParcelRepository(db)
+    async for db in get_db():
+        repo = SQLAlchemyParcelRepository(db)
         service = ParcelService(repo)
         
         # Тестируем получение посылок для главной сессии
@@ -14,5 +14,6 @@ async def test():
         if parcels:
             # parcels теперь список словарей
             print(f'First parcel: id={parcels[0]["id"]}, type={parcels[0]["type"]}')
+        break  # Выходим после первой итерации
 
 asyncio.run(test())

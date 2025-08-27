@@ -1,3 +1,13 @@
+networks:
+  delivery-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  celerybeat:
+  logs:
+
+
 services:
   api:
     build:
@@ -19,6 +29,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    volumes:
+      - logs:/app/logs
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   worker:
@@ -26,7 +40,7 @@ services:
       context: .
       dockerfile: docker/app.Dockerfile
     env_file: .env
-    command: [ "celery", "-A", "core.celery.celery", "worker", "-l", "info", "-Q", "celery", "--hostname=delivery-worker@%h" ]
+    command: [ "celery", "-A", "adapters.messaging.celery_app.celery", "worker", "-l", "info", "-Q", "celery", "--hostname=delivery-worker@%h" ]
     environment:
       PYTHONPATH: /app
       DYNACONF_ENV: development
@@ -36,6 +50,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    volumes:
+      - logs:/app/logs
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   celery_beat:
@@ -43,7 +61,7 @@ services:
       context: .
       dockerfile: docker/app.Dockerfile
     env_file: .env
-    command: [ "celery", "-A", "core.celery.celery", "beat", "-l", "info" ]
+    command: [ "celery", "-A", "adapters.messaging.celery_app.celery", "beat", "-l", "info" ]
     environment:
       PYTHONPATH: /app
       DYNACONF_ENV: development
@@ -55,6 +73,9 @@ services:
         condition: service_healthy
     volumes:
       - celerybeat:/var/run/celery # для файла планировщика Celery Beat
+      - logs:/app/logs
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   flower:
@@ -67,6 +88,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   db:
@@ -77,23 +100,31 @@ services:
       POSTGRES_DB: delivery
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports: [ "5432:5432" ]
+    # Убираем проброс порта БД наружу - только внутренняя сеть
+    expose:
+      - "5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U app -d delivery" ]
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   redis:
     image: redis:7
     command: [ "redis-server", "--appendonly", "yes" ]
-    ports: [ "6379:6379" ]
+    # Убираем проброс порта Redis наружу - только внутренняя сеть
+    expose:
+      - "6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - delivery-network
     restart: unless-stopped
 
   rabbitmq:
@@ -102,16 +133,15 @@ services:
       # если переменные не заданы в .env — будет guest/guest
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    # Убираем проброс портов RabbitMQ наружу - только внутренняя сеть  
+    expose:
+      - "5672"
+      - "15672"
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 30
+    networks:
+      - delivery-network
     restart: unless-stopped
-
-volumes:
-  pgdata:
-  celerybeat:

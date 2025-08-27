@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from services.tasks_delivery import update_delivery_prices
+from adapters.messaging.tasks import update_delivery_prices
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 

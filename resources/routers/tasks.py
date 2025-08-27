@@ -1,8 +1,11 @@
 
-from fastapi import APIRouter
+"""
+Роутер для управления фоновыми задачами.
+"""
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from core.di import command_bus, container
-from domain.commands.tasks import SendPingCommand
+from resources.dependencies import get_messaging_adapter
+from repositories.interfaces import TaskQueuePort
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -11,10 +14,15 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 class PingRequest(BaseModel):
     session_id: str
 
+
 @router.post("/ping")
-async def send_ping(data: PingRequest):
-    # создаём команду и исполняем её через шину с адаптером из контейнера
-    queue_port = container.resolve("task_queue")
-    cmd = SendPingCommand(session_id=data.session_id)
-    task_id = cmd.execute(bus=queue_port)
+async def send_ping(
+    data: PingRequest,
+    messaging: TaskQueuePort = Depends(get_messaging_adapter)
+):
+    """Отправить ping задачу в очередь."""
+    task_id = messaging.send(
+        task_name="tasks.ping",
+        payload={"session_id": data.session_id}
+    )
     return {"data": {"task_id": task_id}}

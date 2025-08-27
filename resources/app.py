@@ -5,27 +5,20 @@ from fastapi import FastAPI
 from core.logging import setup_logging
 from core.responses import add_exception_handlers
 from core.settings import fastapi as fa
-from core.di import container
+from core.di import container, register_adapters
 from resources.middlewares import RequestContextMiddleware
 from resources.routers import admin as admin_router
 from resources.routers import health as health_router
 from resources.routers import parcels as parcels_router
 from resources.routers import tasks as tasks_router
-from adapters.messaging.celery import CeleryTaskQueueAdapter
 
 
 # Инициализируем логирование на уровне модуля,
 # чтобы uvicorn/gunicorn воркеры унаследовали конфиг.
 setup_logging()
 
-
-def _register_adapters() -> None:
-    """
-    Регистрирует адаптеры портов в DI-контейнере.
-    Делает регистрацию идемпотентной (повторные вызовы не ломают контейнер).
-    """
-    if not container.has("task_queue"):
-        container.register("task_queue", lambda: CeleryTaskQueueAdapter())
+# Регистрируем адаптеры в DI контейнере
+register_adapters()
 
 
 def create_app() -> FastAPI:
@@ -39,9 +32,6 @@ def create_app() -> FastAPI:
         docs_url=getattr(fa, "docs_url", "/docs"),
         redoc_url=getattr(fa, "redoc_url", "/redoc"),
     )
-
-    # DI: регистрируем адаптеры для портов
-    _register_adapters()
 
     # Middlewares
     app.add_middleware(RequestContextMiddleware)
@@ -59,7 +49,7 @@ def create_app() -> FastAPI:
     from resources.routers import web as web_router  # noqa: WPS433
     app.include_router(web_router.router)
 
-    # OpenAPI-теги (для красивой документации)
+    # OpenAPI-теги
     app.openapi_tags = [
         {"name": "Health", "description": "Проверка состояния сервиса"},
         {"name": "Tasks", "description": "Тестовые Celery-задачи через порт TaskQueue"},

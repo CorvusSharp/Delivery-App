@@ -1,11 +1,15 @@
+"""
+Настройка Celery приложения.
+Инфраструктурный слой - зависит от Celery, RabbitMQ, Redis.
+"""
 from celery import Celery
-from core.settings import settings
+from core.settings import rabbitmq, celery as celery_settings
 
 celery = Celery(
     "delivery",
-    broker=settings.rabbitmq.url,
-    backend=settings.celery.result_backend,   # redis://redis:6379/0
-    include=["services.tasks_delivery", "services.tasks"],
+    broker=rabbitmq.url,
+    backend=celery_settings.result_backend,   # redis://redis:6379/0
+    include=["adapters.messaging.tasks"],  # Обновим путь после перемещения задач
 )
 
 celery.conf.update(
@@ -14,7 +18,7 @@ celery.conf.update(
     accept_content=["json"],
 
     enable_utc=True,
-    timezone=settings.celery.timezone,  # "UTC" у тебя в .env
+    timezone=celery_settings.timezone,  # "UTC" у тебя в .env
 
     task_default_queue="celery",
     worker_prefetch_multiplier=1,   # честная обработка по 1 таске
@@ -34,7 +38,7 @@ celery.conf.update(
     beat_scheduler="celery.beat:PersistentScheduler",
     beat_schedule={
         "update-delivery-prices-every-5min": {
-            "task": "services.tasks_delivery.update_delivery_prices",
+            "task": "adapters.messaging.tasks.update_delivery_prices",
             "schedule": 300.0,
         },
     },

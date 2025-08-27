@@ -2,7 +2,7 @@ import asyncio
 import time
 from typing import Optional
 
-from core.db import init_db, sync_engine, SyncSessionLocal
+from adapters.db.session import init_db, sync_engine, SyncSessionLocal
 from loguru import logger
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import select

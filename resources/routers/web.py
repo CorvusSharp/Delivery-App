@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Request, Form, Depends, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from core.db import get_db
-from repositories.parcel import ParcelRepository
-from application.parcel_service import ParcelService
+from services.parcel_service import ParcelService
+from resources.dependencies import get_parcel_service
 from core.usd import get_usd_rub_rate
 from resources.i18n import translate_parcel_type
 from schemas.parcel import ParcelRegisterRequest
@@ -18,7 +16,7 @@ templates = Jinja2Templates(directory="resources/web")
 router = APIRouter(prefix="/web", tags=["Web"])
 
 @router.get("/", response_class=HTMLResponse)
-async def web_index(request: Request, db: AsyncSession = Depends(get_db)):
+async def web_index(request: Request, service: ParcelService = Depends(get_parcel_service)):
     # debug logging removed
     
     # Если это запрос отладки, принудительно устанавливаем сессию с данными
@@ -30,8 +28,6 @@ async def web_index(request: Request, db: AsyncSession = Depends(get_db)):
     
     # debug logging removed
     
-    repo = ParcelRepository(db)
-    service = ParcelService(repo)
     types = await service.get_types()
     
     # Берём raw-параметры из запроса, чтобы избежать 422 при пустом type_id
@@ -82,12 +78,10 @@ async def web_register(
     weight: float = Form(...),
     type_id: int = Form(...),
     value_usd: float = Form(...),
-    db: AsyncSession = Depends(get_db)
+    service: ParcelService = Depends(get_parcel_service)
 ):
     session_cookie = auth_settings.session_cookie_name
     session_id = request.cookies.get(session_cookie) or str(uuid.uuid4())
-    repo = ParcelRepository(db)
-    service = ParcelService(repo)
     try:
         # Вызываем сервис с отдельными параметрами
         await service.register_parcel(
@@ -116,10 +110,8 @@ async def web_trigger_calc():
 
 
 @router.get("/debug-json")
-async def debug_json(request: Request, db: AsyncSession = Depends(get_db)):
+async def debug_json(request: Request, service: ParcelService = Depends(get_parcel_service)):
     session_id = "581283af-2523-4a2d-9dd2-1ec8eabf5ac0"
-    repo = ParcelRepository(db)
-    service = ParcelService(repo)
     parcels = await service.list_parcels(session_id, limit=3)
     
     return {

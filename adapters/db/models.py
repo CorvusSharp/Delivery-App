@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from core.db import Base
+from adapters.db.session import Base
 from typing import Optional
 
 class ParcelType(Base):

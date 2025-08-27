@@ -1,5 +1,5 @@
 from sqlalchemy import insert, text
-from core.db import sync_engine, Base
+from adapters.db.session import sync_engine, Base
 import adapters.db.models  # ensure models are registered
 
 def main():

@@ -1,7 +1,7 @@
 from typing import Mapping, Any, Optional
 
-from domain.ports.messaging import TaskQueuePort
-from core.celery import celery
+from repositories.interfaces import TaskQueuePort
+from adapters.messaging.celery_app import celery
 
 
 class CeleryTaskQueueAdapter(TaskQueuePort):

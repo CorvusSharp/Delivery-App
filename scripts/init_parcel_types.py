@@ -1,6 +1,6 @@
 import asyncio
 from sqlalchemy import delete
-from core.db import engine, Base, AsyncSessionLocal
+from adapters.db.session import engine, Base, AsyncSessionLocal
 from sqlalchemy.ext.asyncio import AsyncSession
 from adapters.db.models import ParcelType
 from loguru import logger

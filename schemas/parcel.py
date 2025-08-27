@@ -11,11 +11,13 @@ class ParcelWebRegisterRequest(BaseModel):
 
 
 class ParcelTypeResponse(BaseModel):
+    """ Схема для ответа на запрос о типе посылки."""
     id: int
     name: str
 
 
 class ParcelRegisterRequest(BaseModel):
+    """ Схема для регистрации посылки."""
     name: str = Field(..., min_length=1)
     weight: float = Field(..., gt=0)
     type_id: int
@@ -23,6 +25,7 @@ class ParcelRegisterRequest(BaseModel):
 
 
 class ParcelResponse(BaseModel):
+    """ Схема для ответа на запрос о посылке."""
     id: int
     name: str
     weight: float

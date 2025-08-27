@@ -1,7 +1,7 @@
-import httpx
 import redis as sync_redis
 from adapters.cache.redis import redis
 from core.settings import redis as redis_settings
+from core.http import get_http_client
 
 CBR_URL = "https://www.cbr-xml-daily.ru/daily_json.js"
 
@@ -9,12 +9,13 @@ async def get_usd_rub_rate() -> float:
     rate = await redis.get("usd_rub_rate")
     if rate:
         return float(rate)
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(CBR_URL)
-        data = resp.json()
-        rate = data["Valute"]["USD"]["Value"]
-        await redis.set("usd_rub_rate", rate, ex=300)
-        return float(rate)
+    
+    client = get_http_client()
+    resp = await client.get(CBR_URL)
+    data = resp.json()
+    rate = data["Valute"]["USD"]["Value"]
+    await redis.set("usd_rub_rate", rate, ex=300)
+    return float(rate)
 
 def get_usd_rub_rate_sync() -> float:
     """Синхронная версия для использования в Celery задачах."""
@@ -27,8 +28,9 @@ def get_usd_rub_rate_sync() -> float:
             rate_str = rate.decode('utf-8') if isinstance(rate, bytes) else str(rate)
             return float(rate_str)
         
-        # Получаем курс с сайта ЦБР
-        with httpx.Client() as client:
+        # Получаем курс с сайта ЦБР используя единый HTTP клиент
+        import httpx
+        with httpx.Client(timeout=30.0, follow_redirects=True) as client:
             resp = client.get(CBR_URL)
             data = resp.json()
             rate = data["Valute"]["USD"]["Value"]

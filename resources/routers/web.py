@@ -104,7 +104,7 @@ async def web_register(
 
 @router.post("/trigger-calc")
 async def web_trigger_calc():
-    from services.tasks_delivery import update_delivery_prices
+    from adapters.messaging.tasks import update_delivery_prices
     update_delivery_prices.delay()
     return RedirectResponse("/web/?message=Задача+расчёта+запущена", status_code=303)
 

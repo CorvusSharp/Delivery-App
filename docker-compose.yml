@@ -16,7 +16,8 @@ services:
     env_file: .env
     ports: [ "8000:8000" ]
     command: >
-      sh -c "python scripts/init_db.py &&
+      sh -c "python scripts/wait-for-db.py 60 &&
+             python scripts/migrate.py &&
              uvicorn resources.app:app --host 0.0.0.0 --port 8000 --reload"
     environment:
       PYTHONPATH: /app
@@ -133,10 +134,11 @@ services:
       # если переменные не заданы в .env — будет guest/guest
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-guest}
-    # Убираем проброс портов RabbitMQ наружу - только внутренняя сеть  
+    # Пробрасываем порты RabbitMQ для доступа к Management UI
+    ports:
+      - "15672:15672" # Management UI
     expose:
-      - "5672"
-      - "15672"
+      - "5672" # AMQP для внутренней сети
     healthcheck:
       test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
       interval: 5s

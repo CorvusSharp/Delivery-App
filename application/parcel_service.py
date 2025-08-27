@@ -59,21 +59,24 @@ class ParcelService:
         return self._parcel_to_dict(parcel)
 
     @log_call
-    async def list_parcels(self, session_id: str, type_id: Optional[int] = None, has_price: Optional[bool] = None, limit: int = 10, offset: int = 0) -> List[Dict[str, Any]]:
-        """Получает список посылок и возвращает данные в виде списка словарей."""
-        parcels = await self.repo.get_by_session(session_id)
-        
-        # Фильтрация (TODO: перенести в репозиторий)
-        if type_id is not None:
-            parcels = [p for p in parcels if p.type.id == type_id]
-        if has_price is not None:
-            if has_price:
-                parcels = [p for p in parcels if p.delivery_price_rub is not None]
-            else:
-                parcels = [p for p in parcels if p.delivery_price_rub is None]
-        
-        # Пагинация (TODO: перенести в репозиторий)
-        parcels = parcels[offset:offset + limit]
+    async def list_parcels(
+        self, 
+        session_id: str, 
+        type_id: Optional[int] = None, 
+        has_price: Optional[bool] = None, 
+        limit: int = 10, 
+        offset: int = 0,
+        order_by: str = "id"
+    ) -> List[Dict[str, Any]]:
+        """Получает список посылок с фильтрацией, пагинацией и сортировкой."""
+        parcels = await self.repo.get_by_session(
+            session_id=session_id,
+            type_id=type_id,
+            has_price=has_price,
+            limit=limit,
+            offset=offset,
+            order_by=order_by
+        )
         
         return [self._parcel_to_dict(p) for p in parcels]
 

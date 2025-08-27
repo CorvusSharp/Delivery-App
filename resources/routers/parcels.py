@@ -24,7 +24,16 @@ async def register_parcel(
     session_id = request.cookies.get(session_cookie)
     if not session_id:
         session_id = str(uuid.uuid4())
-        response.set_cookie(session_cookie, session_id, httponly=True, samesite="lax")
+        # Определяем безопасность куки на основе окружения
+        import os
+        is_production = os.getenv("ENV_FOR_DYNACONF", "development") == "production"
+        response.set_cookie(
+            session_cookie, 
+            session_id, 
+            httponly=True, 
+            samesite="lax",
+            secure=is_production  # HTTPS только в продакшене
+        )
     
     try:
         # Сервис теперь принимает отдельные параметры и возвращает словарь
@@ -58,8 +67,9 @@ async def list_parcels(
     service: ParcelService = Depends(get_parcel_service),
     type_id: int = Query(None, description="Filter by type ID"),
     has_price: bool = Query(None, description="Filter by presence of delivery price"),
-    limit: int = Query(10, ge=1, le=100),
-    offset: int = Query(0, ge=0)
+    limit: int = Query(10, ge=1, le=100, description="Number of items per page"),
+    offset: int = Query(0, ge=0, description="Number of items to skip"),
+    order_by: str = Query("id", description="Sort by field (id, name, weight, value_usd)")
 ):
     """Получение списка посылок для текущей сессии."""
     session_cookie = auth_settings.session_cookie_name
@@ -68,7 +78,14 @@ async def list_parcels(
         raise HTTPException(status_code=401, detail="No session")
     
     try:
-        parcels_data = await service.list_parcels(session_id, type_id, has_price, limit, offset)
+        parcels_data = await service.list_parcels(
+            session_id=session_id, 
+            type_id=type_id, 
+            has_price=has_price, 
+            limit=limit, 
+            offset=offset,
+            order_by=order_by
+        )
         return [ParcelResponse(**parcel_data) for parcel_data in parcels_data]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

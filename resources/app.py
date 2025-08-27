@@ -7,6 +7,7 @@ from core.responses import add_exception_handlers
 from core.settings import fastapi as fa
 from core.di import container, register_adapters
 from resources.middlewares import RequestContextMiddleware
+from resources.auth_middleware import AuthMiddleware
 from resources.routers import admin as admin_router
 from resources.routers import health as health_router
 from resources.routers import parcels as parcels_router
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
     )
 
     # Middlewares
+    app.add_middleware(AuthMiddleware, protected_paths=["/admin", "/web"])
     app.add_middleware(RequestContextMiddleware)
 
     # Routers

@@ -81,12 +81,45 @@ class SQLAlchemyParcelRepository(ParcelRepository):
         parcel_model = result.scalar_one_or_none()
         return self._to_domain_entity(parcel_model) if parcel_model else None
 
-    async def get_by_session(self, session_id: str) -> List[Parcel]:
-        """Получить все посылки по сессии."""
-        result = await self.db.execute(
-            select(ParcelModel).options(joinedload(ParcelModel.type))
-            .where(ParcelModel.session_id == session_id)
+    async def get_by_session(
+        self, 
+        session_id: str, 
+        type_id: Optional[int] = None,
+        has_price: Optional[bool] = None,
+        limit: int = 10,
+        offset: int = 0,
+        order_by: str = "id"
+    ) -> List[Parcel]:
+        """Получить посылки по сессии с фильтрацией, пагинацией и сортировкой."""
+        query = select(ParcelModel).options(joinedload(ParcelModel.type)).where(
+            ParcelModel.session_id == session_id
         )
+        
+        # Фильтрация по типу
+        if type_id is not None:
+            query = query.where(ParcelModel.type_id == type_id)
+        
+        # Фильтрация по наличию цены
+        if has_price is not None:
+            if has_price:
+                query = query.where(ParcelModel.delivery_price_rub.is_not(None))
+            else:
+                query = query.where(ParcelModel.delivery_price_rub.is_(None))
+        
+        # Сортировка
+        if order_by == "id":
+            query = query.order_by(ParcelModel.id)
+        elif order_by == "name":
+            query = query.order_by(ParcelModel.name)
+        elif order_by == "weight":
+            query = query.order_by(ParcelModel.weight)
+        elif order_by == "value_usd":
+            query = query.order_by(ParcelModel.value_usd)
+        
+        # Пагинация
+        query = query.offset(offset).limit(limit)
+        
+        result = await self.db.execute(query)
         parcel_models = result.scalars().all()
         return [self._to_domain_entity(model) for model in parcel_models]
 

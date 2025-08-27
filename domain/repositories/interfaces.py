@@ -20,8 +20,16 @@ class ParcelRepository(ABC):
         pass
     
     @abstractmethod
-    async def get_by_session(self, session_id: str) -> List[Parcel]:
-        """Получить все посылки по сессии."""
+    async def get_by_session(
+        self, 
+        session_id: str, 
+        type_id: Optional[int] = None,
+        has_price: Optional[bool] = None,
+        limit: int = 10,
+        offset: int = 0,
+        order_by: str = "id"
+    ) -> List[Parcel]:
+        """Получить посылки по сессии с фильтрацией, пагинацией и сортировкой."""
         pass
     
     @abstractmethod

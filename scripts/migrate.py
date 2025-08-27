@@ -9,7 +9,7 @@ from loguru import logger
 
 def run_migrations() -> bool:
     """
-    Запускает миграции Alembic.
+    Запускает миграции Alemc.
     
     Returns:
         True если миграции прошли успешно, False иначе.

@@ -5,7 +5,7 @@ Dependency Injection контейнер.
 from typing import Callable, Any, Dict
 from functools import partial
 
-from repositories.interfaces import ParcelRepository, TaskQueuePort
+from domain.repositories.interfaces import ParcelRepository, TaskQueuePort
 from adapters.db.repositories.parcel import SQLAlchemyParcelRepository
 from adapters.messaging.celery import CeleryTaskQueueAdapter
 
@@ -62,9 +62,6 @@ def register_adapters():
         lambda: CeleryTaskQueueAdapter(),
         singleton=True
     )
-    
-    # Примечание: ParcelRepository регистрируется в dependencies.py
-    # так как требует сессию БД из FastAPI зависимостей
 
 
 # Команды/события (пока не используется)

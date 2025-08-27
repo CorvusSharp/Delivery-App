@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Form, Depends, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
-from services.parcel_service import ParcelService
+from application.parcel_service import ParcelService
 from resources.dependencies import get_parcel_service
 from core.usd import get_usd_rub_rate
 from resources.i18n import translate_parcel_type

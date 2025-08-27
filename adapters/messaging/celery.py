@@ -1,6 +1,6 @@
 from typing import Mapping, Any, Optional
 
-from repositories.interfaces import TaskQueuePort
+from domain.repositories.interfaces import TaskQueuePort
 from adapters.messaging.celery_app import celery
 
 

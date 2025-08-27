@@ -7,7 +7,7 @@ from loguru import logger
 from functools import wraps
 from typing import Dict, List, Optional, Any
 
-from repositories.interfaces import ParcelRepository
+from domain.repositories.interfaces import ParcelRepository
 from domain.entities.parcel import Parcel, ParcelType
 
 

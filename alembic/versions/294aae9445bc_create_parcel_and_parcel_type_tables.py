@@ -20,9 +20,24 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    pass
+    op.create_table(
+        "parcel_types",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("name", sa.String(length=32), nullable=False, unique=True),
+    )
+    op.create_table(
+        "parcels",
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("name", sa.String(length=128), nullable=False),
+        sa.Column("weight", sa.Float, nullable=False),
+        sa.Column("type_id", sa.Integer, sa.ForeignKey("parcel_types.id"), nullable=False),
+        sa.Column("value_usd", sa.Float, nullable=False),
+        sa.Column("delivery_price_rub", sa.Float, nullable=True),
+        sa.Column("session_id", sa.String(length=64), nullable=False),
+    )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    pass
+    op.drop_table("parcels")
+    op.drop_table("parcel_types")

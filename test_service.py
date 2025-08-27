@@ -1,7 +1,7 @@
 import asyncio
 from adapters.db.session import get_db
 from adapters.db.repositories.parcel import SQLAlchemyParcelRepository
-from services.parcel_service import ParcelService
+from application.parcel_service import ParcelService
 
 async def test():
     async for db in get_db():

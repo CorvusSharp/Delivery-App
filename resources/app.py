@@ -11,6 +11,7 @@ from resources.routers import admin as admin_router
 from resources.routers import health as health_router
 from resources.routers import parcels as parcels_router
 from resources.routers import tasks as tasks_router
+from resources.routers import web as web_router
 
 
 # Инициализируем логирование на уровне модуля,
@@ -41,12 +42,6 @@ def create_app() -> FastAPI:
     app.include_router(tasks_router.router)
     app.include_router(parcels_router.router)
     app.include_router(admin_router.router)
-
-    # Ленивая регистрация роутеров, чтобы избежать циклических импортов
-    from resources.routers import admin_init as admin_init_router  # noqa: WPS433
-    app.include_router(admin_init_router.router)
-
-    from resources.routers import web as web_router  # noqa: WPS433
     app.include_router(web_router.router)
 
     # OpenAPI-теги

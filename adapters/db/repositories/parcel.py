@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.interfaces import ParcelRepository
+from domain.repositories.interfaces import ParcelRepository
 from domain.entities.parcel import Parcel, ParcelType
 from adapters.db.models import Parcel as ParcelModel, ParcelType as ParcelTypeModel
 

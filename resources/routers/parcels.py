@@ -4,7 +4,7 @@
 """
 from fastapi import APIRouter, Depends, Request, HTTPException, Query, Response
 from schemas.parcel import ParcelRegisterRequest, ParcelResponse, ParcelTypeResponse
-from services.parcel_service import ParcelService
+from application.parcel_service import ParcelService
 from resources.dependencies import get_parcel_service
 import uuid
 from core.settings import auth as auth_settings

@@ -5,7 +5,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from resources.dependencies import get_messaging_adapter
-from repositories.interfaces import TaskQueuePort
+from domain.repositories.interfaces import TaskQueuePort
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 

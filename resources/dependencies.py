@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from adapters.db.session import get_db
 from adapters.db.repositories.parcel import SQLAlchemyParcelRepository
-from services.parcel_service import ParcelService
+from application.parcel_service import ParcelService
 from core.di import container
 
 

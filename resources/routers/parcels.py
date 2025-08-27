@@ -3,7 +3,7 @@
 Презентационный слой - тонкая обертка над use-cases.
 """
 from fastapi import APIRouter, Depends, Request, HTTPException, Query, Response
-from schemas.parcel import ParcelRegisterRequest, ParcelResponse, ParcelTypeResponse
+from schemas import ParcelRegisterRequest, ParcelResponse, ParcelTypeResponse
 from application.parcel_service import ParcelService
 from resources.dependencies import get_parcel_service
 import uuid

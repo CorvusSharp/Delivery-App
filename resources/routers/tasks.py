@@ -3,24 +3,12 @@
 Роутер для управления фоновыми задачами.
 """
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from resources.dependencies import get_messaging_adapter
 from domain.repositories.interfaces import TaskQueuePort
 from adapters.messaging.celery_app import celery
+from schemas import PingRequest, TaskStatusResponse
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
-
-
-# Pydantic-модели для входящего JSON
-class PingRequest(BaseModel):
-    session_id: str
-
-
-class TaskStatusResponse(BaseModel):
-    task_id: str
-    status: str
-    result: dict | None = None
-    error: str | None = None
 
 
 @router.post("/ping")

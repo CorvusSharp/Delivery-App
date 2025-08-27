@@ -5,12 +5,8 @@ from application.parcel_service import ParcelService
 from resources.dependencies import get_parcel_service
 from core.usd import get_usd_rub_rate
 from resources.i18n import translate_parcel_type
-from schemas.parcel import ParcelRegisterRequest
 from core.settings import auth as auth_settings
 import uuid
-import logging
-
-logger = logging.getLogger(__name__)
 
 templates = Jinja2Templates(directory="resources/web")
 router = APIRouter(prefix="/web", tags=["Web"])
